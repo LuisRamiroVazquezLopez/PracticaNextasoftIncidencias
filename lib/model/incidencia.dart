@@ -16,7 +16,7 @@ class Incidencia {
     required this.categoria,
     required this.estado,
     required this.fecha,
-    this.prioridad = 'Media',
+    required this.prioridad,
   });
 
   factory Incidencia.desdeJson(Map<String, dynamic> m) {

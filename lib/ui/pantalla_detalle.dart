@@ -14,11 +14,26 @@ class PantallaDetalle extends StatefulWidget {
 class _PantallaDetalleState extends State<PantallaDetalle> {
   bool guardando = false;
 
-  Future<void> cambiar(String? valor) async {
+  Future<void> cambiarE(String? valor) async {
     if (valor == null) return;
     setState(() => guardando = true);
     try {
       await widget.gestor.cambiarEstado(widget.id, valor);
+      if (mounted) setState(() {});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo guardar: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => guardando = false);
+    }
+  }
+
+  Future<void> cambiarP(String? valor) async {
+    if (valor == null) return;
+    setState(() => guardando = true);
+    try {
+      await widget.gestor.cambiarPrioridad(widget.id, valor);
       if (mounted) setState(() {});
     } catch (e) {
       if (mounted) {
@@ -75,7 +90,16 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
                       items: ['Pendiente', 'En proceso', 'Resuelta']
                           .map((v) => DropdownMenuItem(value: v, child: Text(v)))
                           .toList(),
-                      onChanged: guardando ? null : cambiar,
+                      onChanged: guardando ? null : cambiarE,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: item.prioridad,
+                      decoration: const InputDecoration(labelText: 'Prioridad actual', border: OutlineInputBorder()),
+                      items: ['Baja', 'Media', 'Alta']
+                          .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                          .toList(),
+                      onChanged: guardando ? null : cambiarP,
                     ),
                     if (guardando) const Padding(
                       padding: EdgeInsets.only(top: 12), child: LinearProgressIndicator(),

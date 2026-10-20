@@ -16,6 +16,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   bool cargando = true;
   String? error;
   String busqueda = '';
+  String? filtroEstado = 'Todos';
+  String? filtroPrioridad = 'Todas';
+  final TextEditingController controladorBusqueda = TextEditingController();
 
   @override
   void initState() {
@@ -23,6 +26,14 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     cargar();
   }
 
+  void restablecerFiltros() {
+    controladorBusqueda.clear();
+    setState(() {
+      busqueda = '';
+      filtroEstado = 'Todos';
+      filtroPrioridad = 'Todas';
+    });
+  }
   Future<void> cargar() async {
     setState(() {
       cargando = true;
@@ -90,7 +101,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   @override
   Widget build(BuildContext context) {
-    final items = g.buscar(busqueda);
+    final items = g.buscar(busqueda, filtroEstado,  filtroPrioridad);
     return Scaffold(
       appBar: AppBar(
         title: const Text('NexaSoft | Incidencias'),
@@ -163,7 +174,47 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                               prefixIcon: Icon(Icons.search),
                               border: OutlineInputBorder(),
                             ),
+                            controller: controladorBusqueda,
                             onChanged: (texto) => setState(() => busqueda = texto),
+                          ),
+                        ),
+                        // Filtro de estado
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal:17, vertical: 5),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String?>(
+                                  value: filtroEstado,
+                                  decoration: const InputDecoration(labelText: 'Estado', border: OutlineInputBorder()),
+                                  items: ['Todos', 'Pendiente', 'En proceso', 'Resuelta']
+                                      .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                                      .toList(),
+                                  onChanged: (value) => setState(() => filtroEstado = value ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: DropdownButtonFormField<String?>(
+                                  value: filtroPrioridad,
+                                  decoration: const InputDecoration(labelText: 'Prioridad', border: OutlineInputBorder()),
+                                  items: ['Todas', 'Alta', 'Media', 'Baja']
+                                      .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                                      .toList(),
+                                  onChanged: (String? value) => setState(() => filtroPrioridad = value),
+                                ),
+                              ),
+                            ],
+                            
+                          ),
+                          
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                          child: TextButton.icon(
+                            onPressed: restablecerFiltros,
+                            icon: const Icon(Icons.filter_alt_off),
+                            label: const Text('Restablecer filtros'),
                           ),
                         ),
                         Padding(
@@ -175,7 +226,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                         ),
                         Expanded(
                           child: items.isEmpty
-                              ? const Center(child: Text('No se encontraron incidencias'))
+                              ? const Center(child: Text('No hay incidencias que coincidan con la búsqueda y los filtros'))
                               : ListView.builder(
                                   padding: const EdgeInsets.only(left: 12, right: 12, bottom: 100),
                                   itemCount: items.length,
